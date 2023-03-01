@@ -8,20 +8,30 @@ SCREEN_Y = 512
 GOAl_X = 384
 GOAl_Y = 384
 
+# maze_draft = [
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0]
+# ]
 maze_draft = [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0]
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
 
 def create_empty_maze():
-    maze_coords = []
+    maze_coords = [[] for _ in range(8)]
     cor_x = 0
     cor_y = 0
     new_arr = []
@@ -36,13 +46,26 @@ def create_empty_maze():
         cor_x = 0
     return maze_coords
 
+def create_maze_from_draft(_maze_draft):
+    maze_coordinates = []
+    cor_x = 0
+    cor_y = 0
+    for rows in range(0, 8):
+        for columns in range(0, 8):
+            if _maze_draft[rows][columns] == 1:
+                maze_coordinates.append((cor_x, cor_y))
+            cor_x += RECT_SIZE
+        cor_y += RECT_SIZE
+        cor_x = 0
+    return maze_coordinates
 
-def bfs(coords):
+
+def bfs(coords, maze):
     min_way = 0  # minimum number of steps to reach the goal
     q = Queue()
     visited = []
     doable = False
-    node_r, node_c = 0, 0  # row and column of the first element element
+    node_r, node_c = 1, 1  # row and column of the first element element
     q.put(coords[node_r][node_c])
     while True:
         elem = q.get()
@@ -55,13 +78,13 @@ def bfs(coords):
                 if elem == coords[r][c]:
                     node_r = r
                     node_c = c
-        if 0 <= node_r - 1 < 8 and coords[node_r - 1][node_c] not in visited:
+        if 0 <= node_r - 1 < 8 and coords[node_r - 1][node_c] not in visited and coords[node_r - 1][node_c] not in maze:
             q.put(coords[node_r - 1][node_c])
-        if 0 <= node_r + 1 < 8 and coords[node_r + 1][node_c] not in visited:
+        if 0 <= node_r + 1 < 8 and coords[node_r + 1][node_c] not in visited and coords[node_r + 1][node_c] not in maze:
             q.put(coords[node_r + 1][node_c])
-        if 0 <= node_c - 1 < 8 and coords[node_r][node_c - 1] not in visited:
+        if 0 <= node_c - 1 < 8 and coords[node_r][node_c - 1] not in visited and coords[node_r][node_c - 1] not in maze:
             q.put(coords[node_r][node_c - 1])
-        if 0 <= node_c + 1 < 8 and coords[node_r][node_c + 1] not in visited:
+        if 0 <= node_c + 1 < 8 and coords[node_r][node_c + 1] not in visited and coords[node_r][node_c + 1] not in maze:
             q.put(coords[node_r][node_c + 1])
         if q.empty():
             min_way = -1
@@ -69,7 +92,8 @@ def bfs(coords):
         min_way += 1
 
 
-coordinates = create_empty_maze()
-result, path = bfs(coordinates)
+coordinates = create_empty_maze()  # coordinates of each block of the maze
+maze = create_maze_from_draft(maze_draft)  # coordinates of walls of the maze
+result, path = bfs(coordinates, maze)
 print(result)
 print(path)
