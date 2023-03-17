@@ -1,26 +1,39 @@
 import sys, pygame, time
 import math
+from bfs import bfs, create_empty_maze
+from generator import maze_generator
+
+RECT_SIZE = 64
+PLAYER_SIZE = 64
+SPEED = 3
+BLOCKS = 8  # number of blocks on one size of the maze
+SCREEN_X = 512
+SCREEN_Y = 512
+PLAYER_X = 64
+PLAYER_Y = 64
+PLAYER_R = 1
+PLAYER_C = 1
+GOAl_X = 384
+GOAl_Y = 384
+GENERATE_MAZE = True
+ICON_IMAGE = "open-book.png"
+GOAL_IMAGE = "library.png"
+PLAYER_IMAGE = "sunflower_big.png"
+TITLE = "Game"
 
 pygame.init()
 clock = pygame.time.Clock()
-RECT_SIZE = 64
-PLAYER_SIZE = 64
-speed = 3
 # create the screen
-screen_x = 512
-screen_y = 512
-screen = pygame.display.set_mode((screen_x, screen_y))  # width, height
+screen = pygame.display.set_mode((SCREEN_X, SCREEN_Y))  # width, height
 # title
-pygame.display.set_caption("Game")
+pygame.display.set_caption(TITLE)
 # icon
-icon = pygame.image.load("open-book.png")
+icon = pygame.image.load(ICON_IMAGE)
 icon.convert()
 pygame.display.set_icon(icon)
 # library = destination
-goalIm = pygame.image.load("library.png")
+goalIm = pygame.image.load(GOAL_IMAGE)
 goalIm.convert()
-goal_x = 384
-goal_y = 384
 # game over text
 game_over = pygame.font.Font('freesansbold.ttf', 32)
 # maze
@@ -48,6 +61,9 @@ class Coords:
     def __add__(self, other_coords):
         return Coords(self.x + other_coords.x, self.y + other_coords.y)
 
+    def __str__(self):
+        return str(self.x) + ' ' + str(self.y)
+
 
 class Player:
 
@@ -57,8 +73,10 @@ class Player:
         self.player_coords = coordinates
 
     # move is difference between old and new coordinates
-    def move_player(self, _move):
-        self.player_coords += _move
+    def move_player(self, move):
+        self.player_coords += move
+
+    def redraw_player(self):
         screen.blit(self.player_image, (self.player_coords.x, self.player_coords.y))
 
 
@@ -69,7 +87,12 @@ class Maze:
         screen.fill((100, 100, 100))
         self.maze_draft = maze_draft
         self.goal_coords = goal_coords
-        self.maze_coords = self.create_maze_from_draft()
+        if GENERATE_MAZE == True:
+            coordinates = []
+            maze_generator(create_empty_maze(), coordinates)
+            self.maze_coords = coordinates
+        else:
+            self.maze_coords = self.create_maze_from_draft()
         self.maze_draw()
         self.goal_draw()
         # self.player = Player(player_image, player_start_coords)
@@ -115,37 +138,39 @@ class Maze:
                 return False
             if (x < player_coordinates.x + PLAYER_SIZE - 1 < x + RECT_SIZE) and (y < player_coordinates.y + PLAYER_SIZE - 1 < y + RECT_SIZE):
                 return False
-            if (x < player_coordinates.x < x + RECT_SIZE) and (y < player_coordinates.y - 1 < y + RECT_SIZE):
+            if (x < player_coordinates.x < x + RECT_SIZE) and (y < player_coordinates.y + PLAYER_SIZE - 1 < y + RECT_SIZE):
                 return False
         # boundaries of the screen
         if player_coordinates.x < 0:
             return False
-        if player_coordinates.x > (screen_x - PLAYER_SIZE):
+        if player_coordinates.x > (SCREEN_X - PLAYER_SIZE):
             return False
         if player_coordinates.y < 0:
             return False
-        if player_coordinates.y > (screen_y - PLAYER_SIZE):
+        if player_coordinates.y > (SCREEN_Y - PLAYER_SIZE):
             return False
         return True
 
 
-def move_type(event):
+def move_type(prev_move, event):
     coords_change = Coords(0, 0)
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_RIGHT:
-            coords_change.x = speed
+            coords_change.x = SPEED
         if event.key == pygame.K_LEFT:
-            coords_change.x = -speed
+            coords_change.x = -SPEED
         if event.key == pygame.K_UP:
-            coords_change.y = -speed
+            coords_change.y = -SPEED
         if event.key == pygame.K_DOWN:
-            coords_change.y = speed
+            coords_change.y = SPEED
+        return coords_change
     if event.type == pygame.KEYUP:
         if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
             coords_change.x = 0
         if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
             coords_change.y = 0
-    return coords_change
+        return coords_change
+    return prev_move
 
 
 def game_over_text():
@@ -153,27 +178,36 @@ def game_over_text():
     screen.blit(text, (170, 220))
 
 
-# game loop
-running = True
-# create a player
-player_initial_coordinates = Coords(RECT_SIZE, RECT_SIZE)
-player = Player("sunflower_big.png", player_initial_coordinates)
-while running:
-    clock.tick(60)
-    goal_coords = Coords(goal_x, goal_y)
-    player_start_coords = Coords(RECT_SIZE, RECT_SIZE)
-    maze = Maze(goal_coords, maze_draft, player)
+def main():
+    # game loop
+    running = True
     move = Coords(0, 0)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        # check the type of keys pressed
-        move = move_type(event)
-    # check if the move is valid
-    if maze.is_valid_move(maze.player.player_coords + move):
-        maze.player.move_player(move)
-    # check if the goal is reached
-    if maze.is_goal_collision():
+    # create a player
+    player_initial_coordinates = Coords(RECT_SIZE, RECT_SIZE)
+    player = Player(PLAYER_IMAGE, player_initial_coordinates)
+    goal_coords = Coords(GOAl_X, GOAl_Y)
+    maze = Maze(goal_coords, maze_draft, player)
+    while running:
+        clock.tick(60)
         screen.fill((100, 100, 100))
-        game_over_text()
-    pygame.display.update()
+        maze.maze_draw()
+        maze.goal_draw()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            # check the type of keys pressed
+            move = move_type(move, event)
+        # check if the move is valid
+        if maze.is_valid_move(maze.player.player_coords + move):
+            maze.player.move_player(move)
+        maze.player.redraw_player()
+        # check if the goal is reached
+        if maze.is_goal_collision():
+            screen.fill((100, 100, 100))
+            game_over_text()
+        pygame.display.update()
+
+
+        
+if __name__ == "__main__":
+    main()
