@@ -60,9 +60,6 @@ class Coords:
         self.x = x
         self.y = y
 
-    # This is operator overloading - if you define __add__ or __str___ or __gt__ for a custom class,
-    # you will be able to add, print or use > on your class instances
-    # It tells the interpreter than "when you see me doing Coords + Coords I mean to use this function".
     def __add__(self, other_coords):
         return Coords(self.x + other_coords.x, self.y + other_coords.y)
 
