@@ -26,7 +26,12 @@ maze_draft = [
 ]
 
 
-def create_empty_maze():
+def create_maze_map() -> list[list[(int, int)]]:
+    """
+    Creates list of lists of coordinates of left upper corner of each block of the maze.
+    The maze consists of BLOCKS number of blocks.
+    :return: List of lists of coordinates of left upper corner of each block of the maze.
+    """
     maze_coords = [[] for _ in range(BLOCKS)]
     cor_x = 0
     cor_y = 0
@@ -40,13 +45,18 @@ def create_empty_maze():
     return maze_coords
 
 
-def create_maze_from_draft(_maze_draft):
+def create_maze_from_draft(maze_draft: list[list[int]]) -> list[(int, int)]:
+    """
+    :param maze_draft: the list of 0's and 1's which represent road and walls, respectively.
+    For each value 1, stores in the list maze_coordinates the appropriate coordinates of left upper corner of each wall.
+    :return: List of coordinates of left upper corner of each wall.
+    """
     maze_coordinates = []
     cor_x = 0
     cor_y = 0
     for rows in range(0, BLOCKS):
         for columns in range(0, BLOCKS):
-            if _maze_draft[rows][columns] == 1:
+            if maze_draft[rows][columns] == 1:
                 maze_coordinates.append((cor_x, cor_y))
             cor_x += RECT_SIZE
         cor_y += RECT_SIZE
@@ -54,12 +64,19 @@ def create_maze_from_draft(_maze_draft):
     return maze_coordinates
 
 
-def bfs(coords, maze):  # coords are coordinates of the whole maze, maze - of the walls
-    # dist is the minimum number of steps to reach the goal
+def bfs(maze_map: list[(int, int)], coordinates_of_walls: list[(int, int)]) -> int:
+    """
+    Checks whether the current maze is doable using bfs algorithm.
+    :param maze_map: List of coordinates of each block of the whole maze
+    :param coordinates_of_walls: List of coordinates of left upper corner of each wall.
+    :return: int dist - the minimum number of steps to reach the goal,
+    -1 in case the maze is not doable
+    """
+
     q = Queue()
     visited = set()
     node_r, node_c = PLAYER_R, PLAYER_C  # row and column of the first element element
-    q.put((coords[node_r][node_c], node_r, node_c, 0))
+    q.put((maze_map[node_r][node_c], node_r, node_c, 0))
 
     while not q.empty():
         temp = q.get()
@@ -73,15 +90,17 @@ def bfs(coords, maze):  # coords are coordinates of the whole maze, maze - of th
         for (dr, dc) in nexts:
             newr = r + dr
             newc = c + dc
-            if 0 <= newc < BLOCKS and 0 <= newr < BLOCKS and coords[newr][newc] not in visited and coords[newr][newc] not in maze:
-                q.put((coords[newr][newc], newr, newc, dist+1))
+            if 0 <= newc < BLOCKS and 0 <= newr < BLOCKS and maze_map[newr][newc] not in visited and maze_map[newr][newc] not in coordinates_of_walls:
+                q.put((maze_map[newr][newc], newr, newc, dist+1))
     return -1
 
+
 def main():
-    coordinates = create_empty_maze()  # coordinates of each block of the maze
-    maze = create_maze_from_draft(maze_draft)  # coordinates of walls of the maze
-    path = bfs(coordinates, maze)
+    maze_map = create_maze_map()  # coordinates of each block of the maze
+    coordinates_of_walls = create_maze_from_draft(maze_draft)  # coordinates of walls of the maze
+    path = bfs(maze_map, coordinates_of_walls)
     print(path)
+
 
 if __name__ == "__main__":
     main()
