@@ -6,7 +6,8 @@
 * [Tests](#tests)
 * [Technologies](#technologies)
 ## Overview
-A simple maze game that can generate different random mazes using the BFS algorithm. 
+A simple maze game that can generate different random mazes using the BFS algorithm. \
+The current version of the game is version 1.0. Some new features are planned for the next version.
 
 The design was inspired by the novel "Omniscient Reader's Viewpoint" by Sing Shong.
 
