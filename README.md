@@ -14,6 +14,7 @@ The design was inspired by the novel "Omniscient Reader's Viewpoint" by Sing Sho
 * main.py contains the main functionality, Player and Maze classes.
 * generator.py generates one random maze for the current game.
 * bfs.py is used by the generator to check whether the created maze is doable.
+* test_bfs.py contains unit tests.
 * *.png files are the images for player, goal, icon and background.
 
 ## How to use
